@@ -42,7 +42,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase
             bool IsExistPart = false;
             CheckExistPart(newRoofName+".SLDASM",out IsExistPart,out newRoofPath);   
             var modelRoofPath = $@"{RootFolder}{SourceFolder}\{modelName}.SLDASM";     
-              solidWorksDocument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(modelRoofPath, (int)swDocumentTypes_e.swDocASSEMBLY,
+              solidWorksDocument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(modelRoofPath, (int)SolidWorksDocumentumentTypes_e.SolidWorksDocumentASSEMBLY,
                 (int)swOpenDocOptions_e.swOpenDocOptions_LoadModel + (int)swOpenDocOptions_e.swOpenDocOptions_Silent, "00", 0, 0);
 
             AssemblyDoc solidWorcsAssemvlyDocyment = (AssemblyDoc)solidWorksDocument;
@@ -201,16 +201,16 @@ namespace SolidWorksLibrary.Builders.ElementsCase
 
             #endregion
 
-            //  GabaritsForPaintingCamera(swDoc);
+            //  GabaritsForPaintingCamera(SolidWorksDocument);
             try
             {
                 solidWorksDocument.ForceRebuild3(true);
-                Console.WriteLine("newRoofPath " + newRoofPath);
+                //Console.WriteLine("newRoofPath " + newRoofPath);
                 solidWorksDocument.SaveAs2(newRoofPath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
                 newComponents.Add(new FileInfo(newRoofPath));
                 SolidWorksAdapter.CloseAllDocumentsAndExit();
                 //  PDMWebService.Data.PDM.SolidWorksPdmAdapter.Instance.CheckInOutPdm(newComponents, true);
-                Console.WriteLine("RoofBuilder строка 324 пересмотреть CheckInOutPdm");
+                //Console.WriteLine("RoofBuilder строка 324 пересмотреть CheckInOutPdm");
 
                 foreach (var newComponent in ComponentsPathList)
                 {

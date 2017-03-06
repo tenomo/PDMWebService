@@ -82,18 +82,18 @@ public enum TasksType
         Profile_7_0 = 70
     }
 
-    public enum PanelType
+    public enum PanelType_e
     {
         BlankPanel = 1,
-        DualBlankPanel = 2,
+        
         //  PanelHinged = 3,
-        RemovablePanel = 4,
-        DualRemovablePanel = 5,
+        RemovablePanel = 4,      
         // ThePanelHeatExchanger = 6,
       
 
         безКрыши = 21,
         односкат = 22,
+        Двухскат = 23,
         безОпор = 30,
         РамаМонтажная = 31,
         НожкиОпорные = 32,
@@ -106,7 +106,6 @@ public enum TasksType
         ПодТорцевую = 27,
         ПодТорцевуюИДвериНаЗажимах = 28,
         ПодТорцевуюИДвериНаПетлях = 29
-
     }
 
    public enum  ThermoStrip

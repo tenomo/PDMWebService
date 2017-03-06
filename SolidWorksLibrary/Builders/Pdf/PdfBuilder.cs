@@ -50,7 +50,7 @@ namespace SolidWorksLibrary.Builders.Pdf
             }
             catch (Exception exception)
             {
-                Console.WriteLine("Failed open document    " + exception.ToString());
+                //Console.WriteLine("Failed open document    " + exception.ToString());
                 throw new Exception("Failed open document: " + exception.ToString());
             }
         }
@@ -64,7 +64,7 @@ namespace SolidWorksLibrary.Builders.Pdf
         private string ConvertDrwToPdf( string path)
         {
             int Errors = 0;
-            ModelDoc2 document = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc2(path, (int)swDocumentTypes_e.swDocDRAWING, false, false, true, Errors);
+            ModelDoc2 document = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc2(path, (int)SolidWorksDocumentumentTypes_e.SolidWorksDocumentDRAWING, false, false, true, Errors);
             try
             {
                 ModelDocExtension swModelDocExt;
@@ -82,7 +82,7 @@ namespace SolidWorksLibrary.Builders.Pdf
                 int tempfileIndex = 0;
                 foreach (var sheetName in sheetNames)
                 {
-                    Console.WriteLine(sheetName);
+                    //Console.WriteLine(sheetName);
                     drawingDoc.ActivateSheet(sheetName);
                     sheet = drawingDoc.GetCurrentSheet();
                     pageSetup = sheet.PageSetup;
@@ -231,7 +231,7 @@ namespace SolidWorksLibrary.Builders.Pdf
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                //Console.WriteLine(ex.ToString());
             }
         }
 

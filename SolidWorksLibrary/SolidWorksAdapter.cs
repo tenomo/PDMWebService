@@ -53,9 +53,9 @@ namespace SolidWorksLibrary
                         {
                             process.Kill();
                         }
-                    }                    
+                    }
                     sldWoks_app = new SldWorks() { Visible = true };
-                    MessageObserver.Instance.SetMessage("\t\tCreate exemplar SolidWorks Application", MessageType.System);
+                    MessageObserver.Instance.SetMessage("\t\tCreated exemplar SolidWorks Application", MessageType.System);
                 }
             }
         }
@@ -150,17 +150,17 @@ namespace SolidWorksLibrary
 
 
 
-        public static ModelDoc2 OpenDocument(string path, swDocumentTypes_e documentType, string configuration = "00")
+        public static ModelDoc2 OpenDocument(string path, SolidWorksDocumentumentTypes_e documentType, string configuration = "00")
         {
             int errors = 0, warnings = 0;
 
             int openDocOptions = (int)swOpenDocOptions_e.swOpenDocOptions_Silent;
-            if (documentType == swDocumentTypes_e.swDocDRAWING) {
+            if (documentType == SolidWorksDocumentumentTypes_e.SolidWorksDocumentDRAWING) {
                 openDocOptions += (int)swOpenDocOptions_e.swOpenDocOptions_LoadModel;
             }
 
-            var swDocument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(path, (int)documentType, openDocOptions, configuration, ref errors, ref warnings);
-            SolidWorksAdapter.SldWoksAppExemplare.Visible = true;
+            var SolidWorksDocumentument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(path, (int)documentType, openDocOptions, configuration, ref errors, ref warnings);
+
 
             
 
@@ -175,7 +175,7 @@ namespace SolidWorksLibrary
             }
 
 
-            return swDocument;
+            return SolidWorksDocumentument;
         }
 
         public static ModelDoc2 AcativeteDoc(string docTitle)
