@@ -18,7 +18,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase
     /// <summary>
     /// It abstract class describes the basic behavior of the builder
     /// </summary>
-    public abstract class ProductBuilderBehavior : IFeedbackBuilder
+    public abstract partial class ProductBuilderBehavior : IFeedbackBuilder
     {
         protected Dictionary<string, double> parameters { get; set; }
 
@@ -43,7 +43,12 @@ namespace SolidWorksLibrary.Builders.ElementsCase
         /// <summary>
         /// Working assembly document
         /// </summary>
-        protected AssemblyDoc AssemblyDocument { get; set; }
+        protected AssemblyDoc AssemblyDocument {
+            get {
+                //SolidWorksAdapter.AcativeteDoc(AssemblyName);
+                return SolidWorksAdapter.ToAssemblyDocument(SolidWorksDocument);
+            }
+        }
         /// <summary>
         /// Working SolidWork document { asm, prt }
         /// </summary>
@@ -56,6 +61,11 @@ namespace SolidWorksLibrary.Builders.ElementsCase
         /// Working part document name
         /// </summary>
         protected string PartName { get; set; }
+        /// <summary>
+        /// Part prototype name with which working
+        /// </summary>
+        protected string PartPrototypeName { get; set; }
+
         /// <summary>
         /// Sheetmetal bend radius 
         /// </summary>
@@ -141,11 +151,22 @@ namespace SolidWorksLibrary.Builders.ElementsCase
         protected virtual void EditPartParameters(string partName, string newPath  )
         {
           
-            Console.WriteLine(newPath);
-            foreach (var item in parameters)
+            //Console.WriteLine(newPath);
+            foreach (var eachParameter in parameters)
             {
-                    Dimension myDimension = (SolidWorksDocument.Parameter(item.Key + "@" + partName + ".SLDPRT" )) as Dimension;                   
-                    myDimension.SystemValue = item.Value / 1000;
+                try
+                {
+                    
+                         Console.WriteLine(eachParameter.Key + "@" + partName + " val: " + eachParameter.Value) ;
+                        Dimension myDimension = (SolidWorksDocument.Parameter(eachParameter.Key + "@" + partName + ".SLDPRT")) as Dimension;
+                        myDimension.SystemValue = eachParameter.Value / 1000;
+                    
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(eachParameter.Key + " " + ex);
+                }
             }
             SolidWorksDocument.ForceRebuild3(true);
             SolidWorksDocument =  SolidWorksAdapter.AcativeteDoc(partName);
@@ -153,7 +174,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase
             + (int )swSaveAsOptions_e.swSaveAsOptions_SaveReferenced + (int)swSaveAsOptions_e.swSaveAsOptions_UpdateInactiveViews, null, ref errors, warnings);
             InitiatorSaveExeption(errors, warnings, newPath);
             this.parameters.Clear();
-            SolidWorksAdapter.SldWoksAppExemplare.CloseDoc(partName );
+            SolidWorksAdapter.SldWoksAppExemplare.CloseDoc(partName);
         }
 
                        // if u will be use abstract build method, u must override constructor in all product_builder[s]

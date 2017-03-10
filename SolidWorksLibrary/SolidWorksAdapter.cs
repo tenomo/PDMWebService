@@ -32,30 +32,31 @@ namespace SolidWorksLibrary
         /// </summary>
         private static void InitSolidWorks()
         {
-            if (sldWoks_app == null)
-            {
+            if (sldWoks_app == null) {
                 MessageObserver.Instance.SetMessage("Initialize SolidWorks exemplare");
-            try
-            {
-              
-                sldWoks_app = (SldWorks)Marshal.GetActiveObject("SldWorks.Application");
-                MessageObserver.Instance.SetMessage("\t\tTake an existing exemplar SolidWorks Application", MessageType.System);
-            }
-            catch (Exception ex)
-            {
-                MessageObserver.Instance.SetMessage("\t\tFailed take an existing exemplar SolidWorks Application " + ex, MessageType.Warning);
-                
+                try {
+
+                    sldWoks_app = new SldWorks();
+                    //sldWoks_app = (SldWorks)Marshal.GetActiveObject("SldWorks.Application");
+                    MessageObserver.Instance.SetMessage("\t\tTake an existing exemplar SolidWorks Application", MessageType.System);
+                }
+
+                catch (Exception ex) {
+                    MessageObserver.Instance.SetMessage("\t\tFailed take an existing exemplar SolidWorks Application " + ex, MessageType.Warning);
+
                     Process[] processes = Process.GetProcessesByName("SLDWORKS");
                     int processesLength = processes.Length;
-                    if (processesLength > 0)
-                    { 
-                        foreach (var process in processes)
-                        {
+                    if (processesLength > 0) {
+                        foreach (var process in processes) {
                             process.Kill();
                         }
-                    }                    
-                    sldWoks_app = new SldWorks() { Visible = true };
-                    MessageObserver.Instance.SetMessage("\t\tCreate exemplar SolidWorks Application", MessageType.System);
+                    }
+                    sldWoks_app = new SldWorks()
+                    // Allow SOLIDWORKS to run in the background
+                    // and be invisible
+                    //sldWoks_app.UserControl = false;
+                    { Visible = true };
+                    MessageObserver.Instance.SetMessage("\t\tCreated exemplar SolidWorks Application", MessageType.System);
                 }
             }
         }
@@ -155,12 +156,12 @@ namespace SolidWorksLibrary
             int errors = 0, warnings = 0;
 
             int openDocOptions = (int)swOpenDocOptions_e.swOpenDocOptions_Silent;
-            if (documentType == swDocumentTypes_e.swDocDRAWING) {
+            if (documentType == swDocumentTypes_e.swDocASSEMBLY) {
                 openDocOptions += (int)swOpenDocOptions_e.swOpenDocOptions_LoadModel;
             }
 
-            var swDocument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(path, (int)documentType, openDocOptions, configuration, ref errors, ref warnings);
-            SolidWorksAdapter.SldWoksAppExemplare.Visible = true;
+            var SolidWorksDocumentument = SolidWorksAdapter.SldWoksAppExemplare.OpenDoc6(path, (int)documentType, openDocOptions, configuration, ref errors, ref warnings);
+
 
             
 
@@ -175,7 +176,7 @@ namespace SolidWorksLibrary
             }
 
 
-            return swDocument;
+            return SolidWorksDocumentument;
         }
 
         public static ModelDoc2 AcativeteDoc(string docTitle)

@@ -1,16 +1,12 @@
 ﻿using ServiceConstants;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using SolidWorksLibrary.Builders.ElementsCase.Panels.Components;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
-namespace SolidWorksLibrary.Builders.ElementsCase.Panels
-{
+namespace SolidWorksLibrary.Builders.ElementsCase.Panels {
     public class PanelBuilder : ProductBuilderBehavior
     {
         #region fields
@@ -29,7 +25,8 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
         private double rivetW;
         private double rivetWd;
         private double rivetH;
-        bool isOneHandle = false;
+        private bool isOneHandle = false;
+        private bool isDoublePanal { get; set; }
         #endregion
 
         public PanelBuilder() : base()
@@ -37,48 +34,54 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             base.SetProperties("panel", "source panel");
         }
 
-        private void OpenTemplate(PanelType panelType)
+        private void OpenTemplate(PanelType_e panelType)
         {
-            if (panelType == PanelType.DualBlankPanel || panelType == PanelType.DualRemovablePanel)
+
+            if (isDoublePanal)
             {
-               AssemblyName = "02-104-50";
+                AssemblyName = "02-104-50";
             }
             else
             {
-                 AssemblyName = "02-01";
+                AssemblyName = "02-01";
             }
+
 
             NewPartPath = System.IO.Path.Combine(RootFolder, SourceFolder, AssemblyName + ".SLDASM");
             SolidWorksAdapter.OpenDocument(NewPartPath, swDocumentTypes_e.swDocASSEMBLY);
-            SolidWorksDocument = SolidWorksAdapter.AcativeteDoc(AssemblyName + ".SLDASM");
-            AssemblyDocument = SolidWorksAdapter.ToAssemblyDocument(SolidWorksDocument);
+            SolidWorksDocument = SolidWorksAdapter.AcativeteDoc(AssemblyName + ".SLDASM"); 
         }
 
-        public void Build(  PanelType panelType, PanelProfile profile, Vector2 sizePanel, Materials OuterMaterial, Materials InnerMaterial, double outThickness, double innerThickness  )
+        public void Build(PanelType_e panelType, PanelProfile_e profile, Vector2 sizePanel, Materials_e OuterMaterial, Materials_e InnerMaterial, double outThickness, double innerThickness)
         {
+
+            
+
             this.sizePanel = sizePanel;
             this.innerThickness = innerThickness;
             this.outThickness = outThickness;
+
+            this.isDoublePanal = CutPanel.IsCut(sizePanel);
 
             #region calculate panel dimention by profile
 
             switch (profile)
             {
-                case PanelProfile.Profile_3_0:
+                case PanelProfile_e.Profile_3_0:
                     innerHeight = sizePanel.X - 7;
                     innerWeidht = sizePanel.Y - 7;
                     lenght = 27;
                     deepInsulation = 20;
                     break;
 
-                case PanelProfile.Profile_5_0:
+                case PanelProfile_e.Profile_5_0:
                     innerHeight = sizePanel.X - 10;
                     innerWeidht = sizePanel.Y - 10;
                     lenght = 48;
                     deepInsulation = 45;
                     break;
 
-                case PanelProfile.Profile_7_0:
+                case PanelProfile_e.Profile_7_0:
                     innerHeight = sizePanel.X - 10;
                     innerWeidht = sizePanel.Y - 10;
                     lenght = 50;
@@ -111,13 +114,13 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             OpenTemplate(panelType);
             DeleteComponents((int)panelType);
             CalculateRivetStep();
-            if (panelType == PanelType.DualBlankPanel || panelType == PanelType.DualRemovablePanel)
+            if (isDoublePanal)
             {
                 DoublePanel(panelType, OuterMaterial, InnerMaterial, profile);
             }
             else
             {
-                SinglePanel(panelType,OuterMaterial,InnerMaterial,profile);
+                SinglePanel(panelType, OuterMaterial, InnerMaterial, profile);
             }
             Insulation(profile);
             AssemblyName = "02-" + (int)panelType + sizePanel.X + "-" + sizePanel.Y + "-" + OuterMaterial + "-" + InnerMaterial + "-" + (int)profile;
@@ -142,9 +145,9 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
 
         }
 
-        private void SinglePanel(PanelType panelType, Materials OuterMaterial, Materials InnerMaterial, PanelProfile profile)
+        private void SinglePanel(PanelType_e panelType, Materials_e OuterMaterial, Materials_e InnerMaterial, PanelProfile_e profile)
         {
-            base.PartName  = "02-" + (int)panelType + "-01-"+ sizePanel.X + "-" + sizePanel.Y + "-" + OuterMaterial + "-" + InnerMaterial + "-" + (int)profile;
+            base.PartName = "02-" + (int)panelType + "-01-" + sizePanel.X + "-" + sizePanel.Y + "-" + OuterMaterial + "-" + InnerMaterial + "-" + (int)profile;
 
             if (CheckExistPart != null)
                 CheckExistPart(base.PartName, out IsPartExist, out NewPartPath);
@@ -156,7 +159,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             }
             else
             {
-                
+
                 base.NewPartPath = Path.Combine(RootFolder, SubjectDestinationFolder, base.PartName);
                 // outer panel
                 if (SetBends != null)
@@ -170,7 +173,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                 base.parameters.Add("Толщина@Листовой металл", outThickness);
                 base.parameters.Add("D1@Листовой металл", (double)BendRadius);
                 base.parameters.Add("D2@Листовой металл", (double)KFactor * 1000);
-                if (panelType == PanelType.RemovablePanel && !isOneHandle)
+                if (panelType == PanelType_e.RemovablePanel && !isOneHandle)
                 {
                     base.parameters.Add("D4@Эскиз30", widthHandle);
                 }
@@ -202,17 +205,17 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                 EditPartParameters("02-01-002", base.NewPartPath);
             }
         }
-        
 
-        private void DoublePanel(PanelType panelType, Materials OuterMaterial, Materials InnerMaterial, PanelProfile profile)
+
+        private void DoublePanel(PanelType_e panelType, Materials_e OuterMaterial, Materials_e InnerMaterial, PanelProfile_e profile)
         {
             base.PartName = "02-" + (int)panelType + "-01-" + sizePanel.X + "-" + sizePanel.Y + "-" + OuterMaterial + "-" + InnerMaterial + "-" + (int)profile;
             if (CheckExistPart != null)
-                CheckExistPart(PartName, out IsPartExist, out NewPartPath);        
+                CheckExistPart(PartName, out IsPartExist, out NewPartPath);
             if (IsPartExist)
-            {                
+            {
                 SolidWorksDocument.Extension.SelectByID2("02-01-101-50-1@02-104-50", "COMPONENT", 0, 0, 0, false, 0, null, 0);
-                AssemblyDocument.ReplaceComponents(base.NewPartPath, "", false, true); 
+                AssemblyDocument.ReplaceComponents(base.NewPartPath, "", false, true);
             }
             else
             {
@@ -229,7 +232,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                 base.parameters.Add("Толщина@Листовой металл", outThickness);
                 base.parameters.Add("D1@Листовой металл", (double)BendRadius);
                 base.parameters.Add("D2@Листовой металл", (double)KFactor * 1000);
-                EditPartParameters("02-01-101-50", base.NewPartPath); 
+                EditPartParameters("02-01-101-50", base.NewPartPath);
             }
 
             base.PartName = "02-" + (int)panelType + "-02-" + sizePanel.X + "-" + sizePanel.Y + "-" + OuterMaterial + "-" + InnerMaterial + "-" + (int)profile;
@@ -239,9 +242,9 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             if (IsPartExist)
             {
                 SolidWorksDocument.Extension.SelectByID2("02-01-102-50-1@02-104-50", "COMPONENT", 0, 0, 0, false, 0, null, 0);
-                AssemblyDocument.ReplaceComponents(base.NewPartPath, "", false, true);         
+                AssemblyDocument.ReplaceComponents(base.NewPartPath, "", false, true);
             }
-            else  
+            else
             {
                 base.NewPartPath = base.NewPartPath = Path.Combine(RootFolder, SubjectDestinationFolder, base.PartName);
                 if (SetBends != null)
@@ -263,11 +266,11 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             if (CheckExistPart != null)
                 CheckExistPart(PartName, out IsPartExist, out NewPartPath);
             if (false)
-            { 
+            {
 
                 SolidWorksDocument.Extension.SelectByID2("02-01-103-50-1@02-104-50", "COMPONENT", 0, 0, 0, false, 0, null, 0);
                 AssemblyDocument.ReplaceComponents(base.NewPartPath, "", false, true);
-              
+
             }
             else
             {
@@ -275,7 +278,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                 if (SetBends != null)
                     SetBends((decimal)outThickness, out KFactor, out BendRadius);
                 base.parameters.Add("D1@Эскиз1", sizePanel.Y - 15);
-                
+
                 base.parameters.Add("D1@Кривая1", rivetH);
                 base.parameters.Add("D2@Эскиз1", lenght - innerThickness - outThickness - 1);
                 base.parameters.Add("Толщина@Листовой металл", outThickness);
@@ -288,29 +291,29 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
         /// <summary>
         /// Build Insulation
         /// </summary>
-        private void Insulation(PanelProfile profile)
+        private void Insulation(PanelProfile_e profile)
         {
             string MaterialsFolder = "Materials";
-            PartName = "02-03-" + (profile == PanelProfile.Profile_5_0 ? string.Empty : ((int)profile).ToString()) + sizePanel.X + "-" + sizePanel.Y;
+            PartName = "02-03-" + (profile == PanelProfile_e.Profile_5_0 ? string.Empty : ((int)profile).ToString()) + sizePanel.X + "-" + sizePanel.Y;
 
             string tapeMaterialName = string.Empty, insulationMaterialName = string.Empty;
             switch (profile)
             {
-                case PanelProfile.Profile_3_0:
+                case PanelProfile_e.Profile_3_0:
                     tapeMaterialName = "Лента 30";
                     insulationMaterialName = "";
                     break;
-                case PanelProfile.Profile_5_0:
+                case PanelProfile_e.Profile_5_0:
                     tapeMaterialName = "Лента 50";
                     insulationMaterialName = "";
                     break;
-                case PanelProfile.Profile_7_0:
+                case PanelProfile_e.Profile_7_0:
                     tapeMaterialName = "Лента 50";
                     insulationMaterialName = "";
                     break;
             }
 
-            SolidWorksDocument.Extension.CustomPropertyManager["00"].Add3("Наименование", (int)swCustomInfoType_e.swCustomInfoText, tapeMaterialName,(int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
+            SolidWorksDocument.Extension.CustomPropertyManager["00"].Add3("Наименование", (int)swCustomInfoType_e.swCustomInfoText, tapeMaterialName, (int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
             SolidWorksDocument.Extension.CustomPropertyManager["00"].Add3("Наименование", (int)swCustomInfoType_e.swCustomInfoText, insulationMaterialName, (int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
 
             if (CheckExistPart != null)
@@ -330,7 +333,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                 EditPartParameters("02-01-003", base.NewPartPath);
             }
 
-            PartName = "02-04-" + (profile == PanelProfile.Profile_5_0 ? string.Empty : ((int)profile).ToString()) + sizePanel.X + "-" + sizePanel.Y;
+            PartName = "02-04-" + (profile == PanelProfile_e.Profile_5_0 ? string.Empty : ((int)profile).ToString()) + sizePanel.X + "-" + sizePanel.Y;
             if (CheckExistPart != null)
                 CheckExistPart(PartName, out IsPartExist, out NewPartPath);
             if (IsPartExist)
@@ -349,10 +352,10 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
 
         protected override void DeleteComponents(int type)
         {
-            PanelType eType = (PanelType)type;
+            PanelType_e eType = (PanelType_e)type;
             int deleteOption = (int)swDeleteSelectionOptions_e.swDelete_Absorbed + (int)swDeleteSelectionOptions_e.swDelete_Children;
 
-            if (eType == PanelType.BlankPanel)
+            if (eType == PanelType_e.BlankPanel)
             {
                 SolidWorksDocument.Extension.SelectByID2("Ручка MLA 120-1@02-01", "COMPONENT", 0, 0, 0, false, 0, null, 0);
                 SolidWorksDocument.EditDelete();
@@ -381,7 +384,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
             }
 
 
-            if (eType == PanelType.DualRemovablePanel || eType == PanelType.RemovablePanel)
+            if (eType == PanelType_e.RemovablePanel)
             {
                 if (!isOneHandle)
                 {
@@ -395,7 +398,7 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                     SolidWorksDocument.EditDelete();
                     SolidWorksDocument.Extension.SelectByID2("Threaded Rivets-6@02-01", "COMPONENT", 0, 0, 0, false, 0, null, 0);
                     SolidWorksDocument.EditDelete();
-                    SolidWorksDocument.Extension.SelectByID2("Вырез-Вытянуть7@02-01-001-1@02-01", "BODYFEATURE", 0, 0, 0, false, 0,   null, 0);
+                    SolidWorksDocument.Extension.SelectByID2("Вырез-Вытянуть7@02-01-001-1@02-01", "BODYFEATURE", 0, 0, 0, false, 0, null, 0);
                     SolidWorksDocument.Extension.DeleteSelection2(deleteOption);
                 }
                 else
@@ -410,11 +413,11 @@ namespace SolidWorksLibrary.Builders.ElementsCase.Panels
                     SolidWorksDocument.EditDelete();
                     SolidWorksDocument.Extension.SelectByID2("Threaded Rivets-14@02-01", "COMPONENT", 0, 0, 0, false, 0, null, 0);
                     SolidWorksDocument.EditDelete();
-                    SolidWorksDocument.Extension.SelectByID2("Вырез-Вытянуть8@02-01-001-1@02-01", "BODYFEATURE", 0, 0, 0, false, 0,null, 0);
+                    SolidWorksDocument.Extension.SelectByID2("Вырез-Вытянуть8@02-01-001-1@02-01", "BODYFEATURE", 0, 0, 0, false, 0, null, 0);
                     SolidWorksDocument.Extension.DeleteSelection2(deleteOption);
                 }
 
-                if (eType == PanelType.DualBlankPanel)
+                if (isDoublePanal)
                 {
                     SolidWorksDocument.Extension.SelectByID2("Ручка MLA 120-1@02-104-50", "COMPONENT", 0, 0, 0, false, 0, null, 0);
                     SolidWorksDocument.EditDelete();
