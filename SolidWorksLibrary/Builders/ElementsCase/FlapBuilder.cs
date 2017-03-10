@@ -25,15 +25,15 @@ namespace PDMWebService.Data.Solid.ElementsCase
         /// <param name="isOutDoor"></param>
         /// <param name="material"></param>
         /// <returns></returns>
-        public string Build(FlapTypes flapType, int width, int height, bool isOutDoor, string[] material)
+        public string Build(FlapTypes_e flapType, int width, int height, bool isOutDoor, string[] material)
         {  
             switch (flapType)
             {
-                case FlapTypes.Twenty_mm:
+                case FlapTypes_e.Twenty_mm:
                     PartName = "11-20";
                     AssemblyName = "11 - Damper";
                     break;
-                case FlapTypes.Thirty_mm:
+                case FlapTypes_e.Thirty_mm:
                     PartName = "11-30";
                     AssemblyName = "11-30";
                     break;
@@ -49,7 +49,7 @@ namespace PDMWebService.Data.Solid.ElementsCase
             string newDamperAsmPath = $@"{RootFolder}{SubjectDestinationFolder}{newDamperName}.SLDASM";
             string modelDamperDrw = $@"{RootFolder}{NewPartPath}{drawingName}.SLDDRW";
             string modelLamel = $@"{RootFolder}{NewPartPath}{"11-100"}.SLDDRW";
-           ModelDoc2 swDocDrw = SolidWorksAdapter.OpenDocument(modelDamperDrw, swDocumentTypes_e.swDocDRAWING); 
+           ModelDoc2 SolidWorksDocumentDrw = SolidWorksAdapter.OpenDocument(modelDamperDrw,  swDocumentTypes_e.swDocDRAWING); 
 
             ModelDoc2 solidWorksDocument = SolidWorksAdapter.AcativeteDoc(AssemblyName);   // TO DO
             AssemblyDoc sldWorksAsm = (AssemblyDoc)solidWorksDocument;
@@ -75,7 +75,7 @@ namespace PDMWebService.Data.Solid.ElementsCase
 
             #region typeOfFlange = "20"
 
-            if (flapType == FlapTypes.Twenty_mm)
+            if (flapType == FlapTypes_e.Twenty_mm)
             {
                 if ((countL / 1000) % 2 == 1) //нечетное
                 {
@@ -412,7 +412,7 @@ namespace PDMWebService.Data.Solid.ElementsCase
 
             #region typeOfFlange = "30"
 
-            if (flapType ==  FlapTypes.Thirty_mm)
+            if (flapType ==  FlapTypes_e.Thirty_mm)
             {
                 string newName;
                 string newPartPath;
@@ -968,7 +968,7 @@ namespace PDMWebService.Data.Solid.ElementsCase
             var name = $@"{RootFolder}{SubjectDestinationFolder}{newDamperName}";
             solidWorksDocument.SaveAs2(name + ".SLDASM", (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
             SolidWorksAdapter.SldWoksAppExemplare.CloseDoc(Path.GetFileNameWithoutExtension(new FileInfo(name + ".SLDASM").FullName));
-            swDocDrw.Extension.SelectByID2("DRW1", "SHEET", 0, 0, 0, false, 0, null, 0);
+            SolidWorksDocumentDrw.Extension.SelectByID2("DRW1", "SHEET", 0, 0, 0, false, 0, null, 0);
             var drw = (DrawingDoc)(SolidWorksAdapter.SldWoksAppExemplare.IActivateDoc3(drawingName + ".SLDDRW", true, 0));
             drw.ActivateSheet("DRW1");
             var m = 5;
@@ -978,7 +978,7 @@ namespace PDMWebService.Data.Solid.ElementsCase
 
             //drw.SetupSheet5("DRW1", 12, 12, 1, m, true, RootFolder + @"\\srvkb\SolidWorks Admin\Templates\Основные надписи\A2-A-1.slddrt", 0.42, 0.297, "По умолчанию", false);
 
-            swDocDrw.SaveAs2(name + ".SLDDRW", (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
+            SolidWorksDocumentDrw.SaveAs2(name + ".SLDDRW", (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
             SolidWorksAdapter.SldWoksAppExemplare.CloseDoc(newDamperPath);
             SolidWorksAdapter.SldWoksAppExemplare.ExitApp();
 
@@ -1040,18 +1040,18 @@ namespace PDMWebService.Data.Solid.ElementsCase
 
         private void SwPartParamsChangeWithNewName(string partName, string newName, string[,] newParams /*, bool newFuncOfAdding, IReadOnlyList<string> copies*/)
         {
-            ModelDoc2 swDoc = null;
-            swDoc = SolidWorksAdapter.AcativeteDoc(partName + ".SLDPRT");
-            var modName = swDoc.GetPathName();
+            ModelDoc2 SolidWorksDocument = null;
+            SolidWorksDocument = SolidWorksAdapter.AcativeteDoc(partName + ".SLDPRT");
+            var modName = SolidWorksDocument.GetPathName();
             for (var i = 0; i < newParams.Length / 2; i++)
             {
-                Dimension myDimension = ((Dimension)(swDoc.Parameter(newParams[i, 0] + "@" + partName + ".SLDPRT")));
+                Dimension myDimension = ((Dimension)(SolidWorksDocument.Parameter(newParams[i, 0] + "@" + partName + ".SLDPRT")));
                 var param = Convert.ToDouble(newParams[i, 1]);
                 var swParametr = param;
                 myDimension.SystemValue = swParametr/1000;
             }
-            swDoc.EditRebuild3();
-            swDoc.ForceRebuild3(false);
+            SolidWorksDocument.EditRebuild3();
+            SolidWorksDocument.ForceRebuild3(false);
             //if (!newFuncOfAdding)
             //{
             //    //TO DO
@@ -1073,13 +1073,13 @@ namespace PDMWebService.Data.Solid.ElementsCase
             //}
 
             // to do
-            swDoc.SaveAs2(new FileInfo(newName + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
+            SolidWorksDocument.SaveAs2(new FileInfo(newName + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, false, true);
 
             //if (copies != null)
             //{
             //    //MessageBox.Show("copies - " + copies + "  addingInName - " + addingInName);
-            //    swDoc.SaveAs2(new FileInfo(copies[0] + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, true, true);
-            //    swDoc.SaveAs2(new FileInfo(copies[1] + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, true, true);
+            //    SolidWorksDocument.SaveAs2(new FileInfo(copies[0] + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, true, true);
+            //    SolidWorksDocument.SaveAs2(new FileInfo(copies[1] + ".SLDPRT").FullName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, true, true);
             //}
             // _swApp.CloseDoc(newName + ".SLDPRT");
 
